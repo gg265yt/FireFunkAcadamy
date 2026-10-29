@@ -38,8 +38,8 @@ const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&
 const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const norm=s=>String(s).toLowerCase().replace(/[.,!?;:„“"]/g,'').replace(/\s+/g,' ').trim();
 const pick=a=>a[Math.random()*a.length|0],iso=d=>d.toISOString().slice(0,10),K='ffa-v1';
-const def=()=>({xp:0,done:{},n:0,ok:0,topics:{},wrong:[],log:{},theme:''});
-const valid=o=>o&&typeof o==='object'&&Number.isFinite(o.xp)&&Number.isFinite(o.n)&&Number.isFinite(o.ok)&&['done','topics','log'].every(k=>o[k]&&typeof o[k]==='object')&&Array.isArray(o.wrong);
+const def=()=>({xp:0,done:{},n:0,ok:0,topics:{},wrong:[],seen:[],log:{},theme:''});
+const valid=o=>o&&typeof o==='object'&&Number.isFinite(o.xp)&&Number.isFinite(o.n)&&Number.isFinite(o.ok)&&['done','topics','log'].every(k=>o[k]&&typeof o[k]==='object')&&Array.isArray(o.wrong)&&(o.seen===undefined||Array.isArray(o.seen));
 let S;try{const o=JSON.parse(localStorage.getItem(K));S=valid(o)?{...def(),...o}:def()}catch(e){S=def()}
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
 /* ---------- Lerninhalte (vereinfachte Übungsbeispiele) ----------
@@ -134,34 +134,100 @@ const W=[
 {y:'mc',q:'Welche Rückmeldung ist gut?',o:['„Auftrag Menschenrettung abgeschlossen, Person übergeben.“','„Alles erledigt, glaub ich.“','„Hm.“'],a:[0],x:''},
 {y:'fi',q:'Am Einsatzende melde ich, dass ich wieder ___ bin.',a:['einsatzbereit'],x:''},
 {y:'or',q:'Ordne das Einsatzende (vereinfacht).',o:['Maßnahmen abschließen','Rückmeldung an die Leitstelle','Einsatzbereitschaft melden','Rückfahrt'],x:''},
-{y:'mc',q:'Dein Fahrzeug ist zurück und wieder einsatzbereit auf der Wache. Welcher Status passt im Beispiel?',o:['Status 2','Status 4','Status 5'],a:[0],x:'Status 2 = einsatzbereit auf Wache.'}]}]}];
+{y:'mc',q:'Dein Fahrzeug ist zurück und wieder einsatzbereit auf der Wache. Welcher Status passt im Beispiel?',o:['Status 2','Status 4','Status 5'],a:[0],x:'Status 2 = einsatzbereit auf Wache.'}]}]},
+{id:'w7',e:'⚠️',t:'Welt 7: Besondere Situationen',L:[
+{id:'l71',t:'Schlechte Verständlichkeit',g:'Bei Störungen und Verbindungsproblemen richtig reagieren',x:'Bei schlechter Verständlichkeit hilft langsameres, deutlicheres Sprechen. Prüfe zuerst Gerät, Rufgruppe und Netzanzeige. Wichtige Meldungen müssen ankommen – Ersatzwege richten sich nach den Vorgaben deiner Organisation.',T:[
+{y:'mc',q:'Die Verständlichkeit ist schlecht. Was ist sinnvoll?',o:['Langsamer und deutlicher sprechen','Lauter schreien','Möglichst viele Wörter benutzen'],a:[0],x:'Ruhe und Deutlichkeit helfen mehr als Lautstärke.'},
+{y:'mc',q:'Du hörst die Leitstelle, wirst aber nicht verstanden. Was prüfst du zuerst?',o:['Rufgruppe, Netzanzeige und Sprechtaste','Nur lauter sprechen','Das Gerät wechseln, ohne etwas zu prüfen'],a:[0],x:'Erst die einfachen Ursachen prüfen.'},
+{y:'tf',q:'Bei Verbindungsproblemen darf man auf wichtige Meldungen verzichten.',a:false,x:'Wichtige Meldungen müssen ankommen; Ersatzwege richten sich nach den Vorgaben.'},
+{y:'fi',q:'Bei schlechter Verständlichkeit spricht man langsamer und ___.',a:['deutlicher'],x:''},
+{y:'mc',q:'Was ist ein Funkloch?',o:['Ein Ort ohne ausreichende Netzabdeckung','Ein defektes Mikrofon','Eine Funkpause'],a:[0],x:'Dort kann DMO eine Option sein, wenn die Vorgaben es zulassen.'},
+{y:'fr',q:'Teile der Leitstelle mit, dass du sie schlecht verstehst, und bitte um Wiederholung.',k:[['leitstelle'],['schlecht','undeutlich','unverständlich','verzerrt'],['wiederhol','nochmal','erneut']],m:'Leitstelle, Meldung schlecht verständlich, bitte wiederholen.',x:'Problem nennen, Wiederholung erbitten.'}]},
+{id:'l72',t:'Falsche Rufgruppe und hohe Funklast',g:'Bei Fehlern und belegtem Kanal ruhig und priorisiert handeln',x:'Bei hoher Funkbelastung zählen kurze Meldungen und Priorisierung. Notfall- und Notrufverfahren sind organisatorisch geregelt und gehören in Ausbildung und Dienstanweisung.',T:[
+{y:'mc',q:'Du merkst, dass du in der falschen Rufgruppe bist. Was tust du?',o:['Rufgruppe prüfen und korrigieren, bevor du weiterfunkst','Weiterfunken und hoffen','Das Gerät ausschalten'],a:[0],x:'Sonst erreicht die Meldung die falschen Teilnehmer.'},
+{y:'tf',q:'Bei hoher Funkbelastung werden kurze Meldungen noch wichtiger.',a:true,x:''},
+{y:'mc',q:'Der Kanal ist stark belegt, deine Meldung ist nicht dringend. Was ist sinnvoll?',o:['Auf eine Sprechpause warten','Dazwischenfunken','Mehrfach hintereinander rufen'],a:[0],x:''},
+{y:'or',q:'Ordne das Vorgehen bei belegtem Kanal.',o:['Zuhören','Prüfen, ob die Meldung dringend ist','Auf eine Sprechpause warten','Kurz und klar melden'],x:''},
+{y:'fi',q:'Meldungen zur Gefährdung von Personen haben ___.',a:['vorrang'],x:''},
+{y:'mc',q:'Welche Meldung hat bei hoher Funklast Vorrang?',o:['Gefährdung von Personen','Hinweis zur Verpflegung','Rückfrage zum Dienstplan'],a:[0],x:''}]}]},
+{id:'w8',e:'🔥',t:'Welt 8: Praxis und komplexe Szenarien',L:[
+{id:'l81',t:'Verkehrsunfall und Wohnungsbrand',g:'Lagemeldungen für typische Einsätze aufbauen',x:'Eine gute Lagemeldung nennt Art der Lage, Ort, Gefährdung von Personen und eingeleitete Maßnahmen. Wesentliche Änderungen werden zeitnah nachgemeldet. Alle Szenarien sind vereinfachte Übungsbeispiele.',T:[
+{y:'mc',q:'Welche Angaben gehören in die erste Meldung zu einem Verkehrsunfall?',o:['Anzahl beteiligter Fahrzeuge','Eingeklemmte Personen','Handymarke des Fahrers','Gefahrenlage, z. B. auslaufende Betriebsstoffe'],a:[0,1,3],x:''},
+{y:'or',q:'Ordne eine Meldung zum Wohnungsbrand.',o:['Einsatzstelle erreicht','Lage: Wohnungsbrand, Ort im Gebäude','Personen: vermisst oder gerettet','Maßnahmen und Nachforderung'],x:''},
+{y:'tf',q:'Bei einer Menschenrettung wird die Lage erst gemeldet, wenn alles abgeschlossen ist.',a:false,x:'Wesentliche Änderungen werden zeitnah gemeldet.'},
+{y:'fi',q:'Bei einem Unfall meldet man: Person ___ (festgeklemmt im Fahrzeug).',a:['eingeklemmt'],x:''},
+{y:'mc',q:'Welche Meldung ist besser?',o:['„Wohnungsbrand zweites Obergeschoss, eine Person vermisst, Menschenrettung läuft.“','„Hier brennt es irgendwie.“','„Alles ganz schlimm, kommt alle.“'],a:[0],x:''},
+{y:'fr',q:'Melde einen Wohnungsbrand im dritten Obergeschoss, zwei Personen werden vermisst.',k:[['wohnungsbrand','brand'],['dritt','3'],['zwei','2'],['vermisst']],m:'Wohnungsbrand drittes Obergeschoss, zwei Personen vermisst.',x:'Lage, Ort, Gefährdung.'}]},
+{id:'l82',t:'Mehrere Einheiten und Unwetter',g:'Funkverkehr bei komplexen Lagen ordnen',x:'Bei mehreren Einheiten sind eindeutige Ansprache und klare Aufträge entscheidend. Bei Unwetterlagen steigt die Funklast. Das Wasserrettungs-Beispiel ist ein allgemeines Übungsszenario.',T:[
+{y:'mc',q:'Was ist bei mehreren Einheiten an einer Einsatzstelle besonders wichtig?',o:['Klare Zuständigkeit und eindeutige Ansprache','Alle funken gleichzeitig','Niemand funkt'],a:[0],x:''},
+{y:'tf',q:'Bei Unwetterlagen mit vielen Einsätzen steigt die Funklast.',a:true,x:'Kurze, priorisierte Meldungen helfen.'},
+{y:'mc',q:'Technische Hilfeleistung: Was braucht die Leitstelle zuerst?',o:['Art der Lage und Gefährdung','Die Lebensgeschichte der Betroffenen','Die Fahrzeugfarbe'],a:[0],x:''},
+{y:'or',q:'Ordne die Koordination bei mehreren Einheiten (Übungsszenario).',o:['Lage melden','Einheiten eindeutig ansprechen','Aufträge klar erteilen','Rückmeldungen abwarten und quittieren'],x:''},
+{y:'fi',q:'Bei mehreren Einheiten spricht man die gewünschte Einheit mit dem ___ an.',a:['funkrufnamen','rufnamen'],x:'Der Funkrufname macht die Ansprache eindeutig.'},
+{y:'fr',q:'Du bist Einheit 2 und meldest der Leitstelle: Personenrettung aus dem Wasser abgeschlossen (Übungsszenario).',k:[['leitstelle'],['rettung'],['abgeschlossen','erledigt','beendet']],m:'Leitstelle, Florian Übung 2/1: Personenrettung abgeschlossen, Person an den Rettungsdienst übergeben.',x:'Anruf, Auftrag, Ergebnis.'}]}]},
+{id:'w9',e:'🎓',t:'Welt 9: Prüfungsvorbereitung',L:[
+{id:'l91',t:'Grundlagen wiederholen',g:'Begriffe und Regeln aus den Welten 1 bis 6 festigen',x:'Wiederholung wichtiger Fachbegriffe. Denke daran: Verbindlich sind immer die Vorgaben deiner Organisation und deines Bundeslandes.',T:[
+{y:'mc',q:'Wofür steht DMO?',o:['Direct Mode Operation','Digital Mode Output','Dienstliche Meldung offen'],a:[0],x:''},
+{y:'mc',q:'Was bedeutet Status 2 im Übungsbeispiel?',o:['Einsatzbereit auf Wache','Einsatzstelle an','Sprechwunsch'],a:[0],x:''},
+{y:'tf',q:'Funkrufnamen sind bundesweit einheitlich.',a:false,x:'Aufbau und Vergabe sind regional bzw. organisatorisch geregelt.'},
+{y:'fi',q:'Das Bestätigen einer Meldung nennt man ___.',a:['quittieren','quittierung'],x:''},
+{y:'mc',q:'Wie heißt eine Gruppe von Teilnehmern, die gemeinsam kommuniziert?',o:['Rufgruppe','Statusgruppe','Funkloch'],a:[0],x:''},
+{y:'tf',q:'Die simulierten Dialoge in dieser App sind offizielle Einsatzanweisungen.',a:false,x:'Es sind vereinfachte Übungsbeispiele.'}]},
+{id:'l92',t:'Fehler erkennen und Abschluss',g:'Fehlerhafte Funksprüche erkennen und selbst korrekt melden',x:'Typische Fehler: kein Angerufener, kein Funkrufname, Füllwörter, Unsicherheit, zu viel Unwichtiges. Zum Abschluss formulierst du selbst eine Meldung.',T:[
+{y:'mc',q:'Welcher Anruf ist im Übungsbeispiel korrekt?',o:['„Leitstelle, hier Florian Übung 1/1, kommen.“','„Florian, hallo?“','„Hier ist wer, bitte melden.“'],a:[0],x:''},
+{y:'mc',q:'Welche Fehler enthält: „Äh, hier irgendwer, ich glaube, wir sind jetzt da, kommen?“',o:['Kein Angerufener genannt','Füllwörter und Unsicherheit','Kein Funkrufname','Perfekte Funkdisziplin'],a:[0,1,2],x:''},
+{y:'mc',q:'Du bemerkst einen Fehler in deiner eigenen Meldung. Wann berichtigst du?',o:['Sofort und kurz','Nie','Erst nach dem Einsatz'],a:[0],x:''},
+{y:'or',q:'Ordne den Ablauf eines kurzen Funkgesprächs.',o:['Anruf','Antwort des Angerufenen','Meldung','Quittierung','Abschluss'],x:''},
+{y:'fi',q:'Wichtiges zuerst, Unwichtiges ___.',a:['weglassen'],x:''},
+{y:'fr',q:'Abschlussaufgabe: Melde der Leitstelle als Florian Übung 1/1 die Rückkehr zur Wache und deine Einsatzbereitschaft.',k:[['leitstelle'],['wache','zurück','rückkehr','rückfahrt'],['einsatzbereit']],m:'Leitstelle, Florian Übung 1/1: Rückfahrt beendet, wieder einsatzbereit auf Wache.',x:'Anruf, Ort, Status.'}]}]}];
 const A=[],LS={},WN={sim:'Funk-Simulator'};
-W.forEach(w=>{WN[w.id]=w.t;w.L.forEach(l=>{LS[l.id]=l;l.T.forEach((t,i)=>{t.id=l.id+'-'+i;t.w=w.id;A.push(t)})})});
+const DN=['','Anfänger','Grundlagen','Fortgeschritten','Einsatzpraxis','Expertenmodus'],DB={w1:1,w2:2,w3:2,w4:3,w5:3,w6:4,w7:4,w8:4,w9:3};
+const EX={
+l12:[{y:'mc',z:1,q:'Dialog (Übung): Welche Zeile enthält den Fehler?',o:['A: „Leitstelle, hier Florian Übung 1/1, kommen.“','B: „Florian Übung 1/1, hier Leitstelle, kommen.“','A: „Äh, also, wir sind so ungefähr da, glaub ich.“','B: „Verstanden.“'],a:[2],x:'Füllwörter und Unsicherheit – besser: „Einsatzstelle erreicht.“'}],
+l22:[{y:'ma',q:'Ordne die Begriffe zu.',p:[['TMO','Kommunikation über das Funknetz'],['DMO','Direkt zwischen Geräten ohne Netz'],['Rufgruppe','Teilnehmer, die gemeinsam kommunizieren']],x:''}],
+l31:[{y:'mc',s:'Florian Übung 1/1, hier Leitstelle, kommen.',q:'Wer wird in diesem Anruf angesprochen?',o:['Florian Übung 1/1','Die Leitstelle','Alle Einheiten'],a:[0],x:'Der Angerufene wird zuerst genannt.'},
+{y:'mc',s:'Leitstelle, hier Florian Übung 1/1, kommen.',q:'Wer ruft hier wen?',o:['Florian Übung 1/1 ruft die Leitstelle','Die Leitstelle ruft Florian Übung 1/1','Niemand ruft jemanden'],a:[0],x:'Erst der Angerufene, dann der Anrufer.'}],
+l32:[{y:'ma',q:'Ordne die Äußerungen zu.',p:[['Verstanden','Empfang bestätigen (Quittierung)'],['Bitte wiederholen','Rückfrage bei Unklarheit'],['Kommen','Aufforderung zur Antwort (vereinfachtes Beispiel)']],x:''},
+{y:'mc',s:'Leitstelle, bitte wiederholen, Meldung unvollständig verstanden.',q:'Was möchte der Sprecher?',o:['Eine Wiederholung','Den Status wechseln','Das Einsatzende melden'],a:[0],x:''}],
+l41:[{y:'ma',q:'Ordne die Status zu (Übungsbeispiel).',p:[['Status 1','einsatzbereit über Funk'],['Status 2','einsatzbereit auf Wache'],['Status 4','Einsatzstelle an'],['Status 6','nicht einsatzbereit']],x:'Regionale Abweichungen sind möglich.'}],
+l52:[{y:'ma',q:'Ordne jedem Funkspruch den Fehler zu.',p:[['„Äh, also, irgendwie …“','Füllwörter'],['„Es brennt irgendwo.“','Ort fehlt'],['„Hier irgendwer.“','Funkrufname fehlt']],x:''},
+{y:'mc',z:1,q:'Dialog (Übung): Welche Zeilen enthalten Fehler?',o:['A: „Hallo, hier irgendwer, da ist ein Unfall.“','A: „Leitstelle, Florian Übung 1/1: Verkehrsunfall, zwei Pkw, eine Person eingeklemmt.“','B: „Ja, mach ich, glaub ich.“','B: „Verstanden, Rettungsdienst wird nachgefordert.“'],a:[0,2],x:'Kein Funkrufname, unklare Aussage; Unsicherheit statt Quittierung.'}],
+l61:[{y:'mc',s:'Einsatzstelle erreicht, Lage wird erkundet.',q:'Was wird gemeldet?',o:['Eintreffen an der Einsatzstelle','Das Einsatzende','Ein Gerätedefekt'],a:[0],x:''}],
+l81:[{y:'mc',s:'Wohnungsbrand zweites Obergeschoss, eine Person vermisst, Menschenrettung läuft.',q:'Welche Angaben sind enthalten?',o:['Art der Lage','Ort im Gebäude','Anzahl der Fahrzeuge','Vermisste Person'],a:[0,1,3],x:''}],
+l82:[{y:'mc',z:1,q:'Dialog (Übung): Welche Zeile enthält den Fehler?',o:['A: „Einheit 2, hier Einheit 1, bitte Absperrung herstellen, kommen.“','B: „Hier Einheit 2, verstanden, Absperrung wird hergestellt.“','C: „Äh, ich auch, also irgendwie, mal gucken.“'],a:[2],x:'Unklare Ansprache, Füllwörter, kein klarer Auftrag.'}],
+l91:[{y:'ma',q:'Ordne die Fachbegriffe zu.',p:[['BOS','Behörden und Organisationen mit Sicherheitsaufgaben'],['SDS','Kurzdatendienst'],['DMO','Direktbetrieb ohne Netz']],x:''}]};
+W.forEach(w=>{WN[w.id]=w.t;w.L.forEach(l=>{LS[l.id]=l;(EX[l.id]||[]).forEach(t=>l.T.push(t));l.T.forEach((t,i)=>{t.id=l.id+'-'+i;t.w=w.id;t.d=Math.min(5,DB[w.id]+(['fr','or','ma'].includes(t.y)||t.z?1:0));A.push(t)})})});
 const NL=Object.keys(LS).length,nd=()=>Object.keys(S.done).length;
 const LV=[[0,'Funkneuling'],[100,'Funkanwärter'],[250,'Funkhelfer'],[500,'Funkprofi'],[900,'Kommunikationsexperte'],[1400,'Einsatzfunk-Spezialist']];
 const lvl=()=>{let i=0;LV.forEach((l,k)=>{if(S.xp>=l[0])i=k});return{n:LV[i][1],next:LV[i+1]}};
 const BD=[['🥇','Erste Lektion',()=>nd()>=1],['📘','3 Lektionen',()=>nd()>=3],['💯','50 richtige Antworten',()=>S.ok>=50],['🎓','Alle Lektionen',()=>nd()>=NL],['🎯','Perfekte Lektion',()=>Object.values(S.done).some(d=>d&&d.best===100)]];
 const gain=n=>{const d=iso(new Date());S.log[d]=(Number(S.log[d])||0)+n;S.xp+=n};
 const streak=()=>{let c=0,d=new Date();if(!S.log[iso(d)])d.setDate(d.getDate()-1);while(S.log[iso(d)]){c++;d.setDate(d.getDate()-1)}return c};
-function rec(t,ok){S.n++;if(ok)S.ok++;const k=S.topics[t.w]||(S.topics[t.w]={n:0,ok:0});k.n++;if(ok)k.ok++;S.wrong=S.wrong.filter(x=>x!==t.id);if(!ok)S.wrong.push(t.id);if(ok)gain(t.y==='or'||t.y==='fr'?15:10);save();hd()}
+function rec(t,ok){S.n++;if(ok)S.ok++;const k=S.topics[t.w]||(S.topics[t.w]={n:0,ok:0});k.n++;if(ok)k.ok++;if(!S.seen.includes(t.id))S.seen.push(t.id);S.wrong=S.wrong.filter(x=>x!==t.id);if(!ok)S.wrong.push(t.id);if(ok)gain(t.y==='or'||t.y==='fr'?15:10);save();hd()}
 const hd=()=>{$('#hd').textContent=S.xp+' XP · '+lvl().n};
 const theme=()=>{document.documentElement.dataset.theme=S.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')};
 const disc='<p class="mu">Vereinfachte Übungsinhalte als Ergänzung zur offiziellen Ausbildung. Örtliche Dienstanweisungen und landesspezifische Regeln haben Vorrang. Es findet keine echte Funkübertragung statt.</p>';
 /* ---------- Aufgaben-Runner ---------- */
 let R=null,SIM=null;
 const msgs={ok:['Stark gefunkt!','Meldung korrekt!','Gut aufgepasst!'],bad:['Fast richtig – schau dir die Erklärung an.','Fehler sind Teil des Lernens. Versuch es noch einmal!']};
+const TLN={mc:'Multiple Choice',tf:'Richtig oder falsch',or:'Reihenfolge',fi:'Lückentext',fr:'Eigener Funkspruch',ma:'Zuordnung'};
+const TL=t=>t.s?'Hörverständnis':t.z?'Fehleranalyse':TLN[t.y];
+const TTS='speechSynthesis' in window;
+const AUD=t=>`<div style="border:1px dashed var(--bd);border-radius:12px;padding:10px;margin:8px 0"><p class="mu">Synthetische Sprachausgabe deines Browsers – keine echte Funkaufnahme.</p>${TTS?`<button class="opt" style="width:auto" data-a="say">🔊 Abspielen</button><details><summary>Text anzeigen</summary><p>${esc(t.s)}</p></details>`:`<p><b>Text:</b> ${esc(t.s)}</p>`}</div>`;
 function run(tasks,title,onEnd){R={tasks,i:0,ok:0,title,onEnd,res:[],fin:false};nextT()}
-function nextT(){const t=R.tasks[R.i];if(!t)return fin();R.sel=[];R.chk=false;R.fb='';R.val='';R.ord=t.y==='or'?shuf(t.o.map((_,i)=>i)):0;draw()}
+function nextT(){const t=R.tasks[R.i];if(!t)return fin();R.sel=[];R.chk=false;R.fb='';R.val='';R.ord=t.y==='or'?shuf(t.o.map((_,i)=>i)):t.y==='ma'?shuf(t.p.map((_,i)=>i)):0;try{speechSynthesis.cancel()}catch(e){}draw()}
 function draw(){const t=R.tasks[R.i],c=R.chk,s=R.sel,p=Math.round(R.i/R.tasks.length*100);let b='';
-if(t.y==='mc')b=(t.a.length>1?'<p class="mu">Mehrere Antworten sind richtig.</p>':'')+t.o.map((o,i)=>`<button class="opt ${c?(t.a.includes(i)?'ok':s.includes(i)?'bad':''):s.includes(i)?'sel':''}" data-a="pick" data-i="${i}" aria-pressed="${s.includes(i)}">${esc(o)}</button>`).join('');
+if(t.y==='mc')b=(t.s?AUD(t):'')+(t.a.length>1?'<p class="mu">Mehrere Antworten sind richtig.</p>':'')+t.o.map((o,i)=>`<button class="opt ${c?(t.a.includes(i)?'ok':s.includes(i)?'bad':''):s.includes(i)?'sel':''}" data-a="pick" data-i="${i}" aria-pressed="${s.includes(i)}">${esc(o)}</button>`).join('');
+else if(t.y==='ma')b=t.p.map((p,i)=>`<label>${esc(p[0])}${c?(s[i]===i?' ✔':' ✘'):''}<select data-m="${i}" ${c?'disabled':''}><option value="">– wählen –</option>${R.ord.map(j=>`<option value="${j}" ${s[i]===j?'selected':''}>${esc(t.p[j][1])}</option>`).join('')}</select></label>`).join('')+(c?'':'<p class="mu">Wähle zu jedem Begriff die passende Erklärung.</p>');
 else if(t.y==='tf')b=[true,false].map(v=>`<button class="opt ${c?(t.a===v?'ok':s[0]===v?'bad':''):s[0]===v?'sel':''}" data-a="pick" data-i="${v}" aria-pressed="${s[0]===v}">${v?'Richtig':'Falsch'}</button>`).join('');
 else if(t.y==='or')b=`<p class="mu">Tippe die Schritte in der richtigen Reihenfolge an.</p><ol>${s.map(i=>`<li>${esc(t.o[i])}</li>`).join('')}</ol>`+R.ord.filter(i=>!s.includes(i)).map(i=>`<button class="opt" data-a="pick" data-i="${i}" ${c?'disabled':''}>${esc(t.o[i])}</button>`).join('')+(c?'':'<button class="opt" data-a="oreset">↺ Zurücksetzen</button>');
 else b=t.y==='fr'?`<textarea id="in" rows="3" aria-label="Dein Funkspruch" ${c?'disabled':''}>${esc(R.val)}</textarea>`:`<input id="in" aria-label="Antwort" autocomplete="off" value="${esc(R.val)}" ${c?'disabled':''}>`;
-$('#app').innerHTML=`<div class="card"><div class="bar" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${p}%"></i></div><p class="mu">${esc(R.title)} · Aufgabe ${R.i+1} von ${R.tasks.length}</p><h2>${esc(t.q)}</h2>${b}<div aria-live="polite">${R.fb}</div>${c?'<button class="btn" data-a="next">Weiter</button>':'<button class="btn" data-a="check">Überprüfen</button>'} <button class="opt" style="width:auto" data-a="home">Beenden</button></div>`}
+$('#app').innerHTML=`<div class="card"><div class="bar" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${p}%"></i></div><p class="mu">${esc(R.title)} · Aufgabe ${R.i+1} von ${R.tasks.length} · ${TL(t)}</p><h2>${esc(t.q)}</h2>${b}<div aria-live="polite">${R.fb}</div>${c?'<button class="btn" data-a="next">Weiter</button>':'<button class="btn" data-a="check">Überprüfen</button>'} <button class="opt" style="width:auto" data-a="home">Beenden</button></div>`}
 function check(){const t=R.tasks[R.i];if(R.chk)return;let ok=false,x=t.x||'';
-if(t.y==='fi'||t.y==='fr'){R.val=$('#in').value;if(!norm(R.val))return}else if(!R.sel.length)return;
+if(t.y==='ma'){R.sel=[...document.querySelectorAll('[data-m]')].map(e=>e.value===''?-1:+e.value);if(R.sel.includes(-1))return}else if(t.y==='fi'||t.y==='fr'){R.val=$('#in').value;if(!norm(R.val))return}else if(!R.sel.length)return;
 if(t.y==='mc')ok=R.sel.length===t.a.length&&t.a.every(i=>R.sel.includes(i));
 else if(t.y==='tf')ok=R.sel[0]===t.a;
+else if(t.y==='ma'){ok=R.sel.every((v,i)=>v===i);if(!ok)x='Richtig: '+t.p.map(q=>q[0]+' = '+q[1]).join(' · ')}
 else if(t.y==='or'){ok=R.sel.length===t.o.length&&R.sel.every((a,i)=>a===i);if(!ok)x='Richtige Reihenfolge: '+t.o.map((o,i)=>(i+1)+'. '+o).join(' → ')}
 else if(t.y==='fi'){ok=t.a.some(a=>norm(a)===norm(R.val));if(!ok)x='Richtig: '+t.a[0]+'. '+x}
 else{const v=norm(R.val),m=t.k.filter(g=>!g.some(w=>v.includes(w)));ok=!m.length;x='Musterlösung: „'+t.m+'“'+(m.length?' · Prüfe noch: '+m.map(g=>g[0]).join(', '):'')}
@@ -203,7 +269,7 @@ const P={
 lernen:()=>`<div class="card"><h1>Lernpfad</h1><p class="mu">Alle Lektionen sind frei wählbar – ohne Anmeldung, ohne Limits.</p></div>`+W.map(w=>{const d=w.L.filter(l=>S.done[l.id]).length;return `<section class="card"><h2>${w.e} ${esc(w.t)}</h2><div class="bar"><i style="width:${d/w.L.length*100}%"></i></div><p class="mu">${d} von ${w.L.length} Lektionen abgeschlossen</p>${w.L.map(l=>`<button class="opt" data-a="lesson" data-id="${l.id}">${S.done[l.id]?'✅':'▶️'} ${esc(l.t)}<br><span class="mu">${esc(l.g)}${S.done[l.id]?' · Bestwert '+S.done[l.id].best+' %':''}</span></button>`).join('')}</section>`}).join('')+disc,
 ueben:()=>`<div class="card"><h1>Üben</h1><p class="mu">Freies Training, beliebig oft wiederholbar.</p>${W.map(w=>`<button class="opt" data-a="prac" data-id="${w.id}">${w.e} ${esc(w.t)}</button>`).join('')}<button class="opt" data-a="prac" data-id="wrong">🔁 Falsch beantwortete wiederholen (${S.wrong.length})</button><p id="nt" role="status" class="mu"></p></div>`,
 sim:()=>`<div class="card"><h1>Funk-Simulator</h1><p class="mu">Simulierte Gespräche mit einem virtuellen Gegenüber – keine echte Funkübertragung.</p>${SC.map((s,i)=>`<button class="opt" data-a="sim" data-id="${i}">📻 ${esc(s.t)}</button>`).join('')}</div>`,
-test:()=>`<div class="card"><h1>Wissenstest</h1><label>Themenbereich<select id="tw"><option value="all">Gemischt</option>${W.map(w=>`<option value="${w.id}">${esc(w.t)}</option>`).join('')}</select></label><label>Anzahl der Fragen<select id="tn">${[5,10,20,30].map(n=>`<option>${n}</option>`).join('')}</select></label><label><input type="checkbox" id="tx"> Nur falsch beantwortete Fragen</label><br><button class="btn" data-a="test">Test starten</button><p id="nt" role="status" class="mu"></p></div>`,
+test:()=>`<div class="card"><h1>Wissenstest</h1><label>Themenbereich<select id="tw"><option value="all">Gemischt</option>${W.map(w=>`<option value="${w.id}">${esc(w.t)}</option>`).join('')}</select></label><label>Schwierigkeitsgrad<select id="td"><option value="all">Alle (${A.length} Fragen)</option>${[1,2,3,4,5].map(d=>`<option value="${d}">${DN[d]} (${A.filter(t=>t.d===d).length} Fragen)</option>`).join('')}</select></label><label>Anzahl der Fragen<select id="tn">${[5,10,20,30].map(n=>`<option>${n}</option>`).join('')}</select></label><label><input type="checkbox" id="tx"> Nur falsch beantwortete Fragen</label><br><label><input type="checkbox" id="tnew"> Nur neue Fragen (noch nie beantwortet)</label><br><button class="btn" data-a="test">Test starten</button><p id="nt" role="status" class="mu"></p></div>`,
 stat(){const l=lvl(),tp=Object.entries(S.topics),days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return iso(d)}),mx=Math.max(1,...days.map(d=>Number(S.log[d])||0));
 return `<div class="card"><h1>Statistik</h1>${S.n?'':'<p>Noch keine Lernaktivität – starte unter „Lernen“ eine Lektion.</p>'}<p>🏅 <b>${esc(l.n)}</b> · ${S.xp} XP${l.next?` (nächste Stufe ab ${l.next[0]} XP)`:''}</p><p>✅ ${nd()} von ${NL} Lektionen · ${S.n} Antworten, ${S.ok} richtig (${S.n?Math.round(S.ok/S.n*100):0} %) · 🔥 Serie: ${streak()} Tage</p></div>
 <div class="card"><h2>XP der letzten 7 Tage</h2><div style="display:flex;align-items:flex-end;gap:6px;height:90px">${days.map(d=>`<div style="flex:1;text-align:center"><div style="background:var(--blue);height:${(Number(S.log[d])||0)/mx*60}px;border-radius:6px 6px 0 0" title="${d}"></div><span class="mu">${d.slice(8)}</span></div>`).join('')}</div></div>
@@ -213,16 +279,16 @@ return `<div class="card"><h1>Statistik</h1>${S.n?'':'<p>Noch keine Lernaktivit�
 ref:()=>`<div class="card"><h1>Nachschlagewerk</h1><label>Suche<input id="q" type="search" placeholder="Begriff suchen …"></label><label>Kategorie<select id="cat"><option value="">Alle</option>${[...new Set(G.map(g=>g.c))].map(c=>`<option>${esc(c)}</option>`).join('')}</select></label></div><div id="rl"></div>${disc}`,
 set:()=>`<div class="card"><h1>Einstellungen</h1><h3>Darstellung</h3><button class="opt" style="width:auto;display:inline-block" data-a="th" data-id="light">☀️ Hell</button> <button class="opt" style="width:auto;display:inline-block" data-a="th" data-id="dark">🌙 Dunkel</button><h3>Datensicherung</h3><p class="mu">Dein Fortschritt liegt nur in diesem Browser. Es werden keine Daten an einen Server gesendet.</p><button class="btn" data-a="exp">Fortschritt exportieren</button><label class="opt" style="margin-top:10px">Fortschritt importieren<input type="file" id="imp" accept=".json,application/json"></label><button class="opt" data-a="reset">🗑️ Fortschritt zurücksetzen</button><p id="nt" role="status"></p></div>${disc}`};
 const RT=[['lernen','Lernen','📚'],['ueben','Üben','🔁'],['sim','Simulator','📻'],['test','Test','📝'],['stat','Statistik','📊'],['ref','Lexikon','📖'],['set','Mehr','⚙️']];
-function route(){R=null;SIM=null;const h=location.hash.slice(1),r=Object.hasOwn(P,h)?h:'lernen';$('#nav').innerHTML=RT.map(x=>`<a href="#${x[0]}" ${x[0]===r?'aria-current="page"':''}><b aria-hidden="true">${x[2]}</b>${x[1]}</a>`).join('');$('#app').innerHTML=P[r]();if(r==='ref')refList();hd();theme();scrollTo(0,0)}
+function route(){try{speechSynthesis.cancel()}catch(e){}R=null;SIM=null;const h=location.hash.slice(1),r=Object.hasOwn(P,h)?h:'lernen';$('#nav').innerHTML=RT.map(x=>`<a href="#${x[0]}" ${x[0]===r?'aria-current="page"':''}><b aria-hidden="true">${x[2]}</b>${x[1]}</a>`).join('');$('#app').innerHTML=P[r]();if(r==='ref')refList();hd();theme();scrollTo(0,0)}
 /* ---------- Aktionen ---------- */
 const X={
 home:route,
 lesson(b){const l=LS[b.dataset.id];$('#app').innerHTML=`<div class="card"><h1>${esc(l.t)}</h1><p><b>Lernziel:</b> ${esc(l.g)}</p><p>${esc(l.x)}</p><p class="mu">Vereinfachtes Übungsbeispiel – örtliche Vorgaben haben Vorrang.</p><button class="btn" data-a="go" data-id="${l.id}">Lektion starten</button> <button class="opt" style="width:auto" data-a="home">Zurück</button></div>`},
 go(b){const l=LS[b.dataset.id];run(l.T,l.t,p=>{const d=S.done[l.id]||(S.done[l.id]={best:0,n:0});d.best=Math.max(d.best,p);d.n++;return 20})},
 prac(b){const id=b.dataset.id,pool=A.filter(t=>id==='wrong'?S.wrong.includes(t.id):t.w===id);if(!pool.length)return $('#nt').textContent='Keine falsch beantworteten Aufgaben – stark!';run(shuf(pool).slice(0,10),id==='wrong'?'Fehler wiederholen':WN[id])},
-test(){const w=$('#tw').value,pool=A.filter(t=>(w==='all'||t.w===w)&&(!$('#tx').checked||S.wrong.includes(t.id)));if(!pool.length)return $('#nt').textContent='Keine passenden Fragen gefunden.';const n=+$('#tn').value;let q=[];while(q.length<n)q=q.concat(shuf(pool));run(q.slice(0,n),'Wissenstest')},
+test(){const w=$('#tw').value,d=$('#td').value,pool=A.filter(t=>(w==='all'||t.w===w)&&(d==='all'||t.d===+d)&&(!$('#tx').checked||S.wrong.includes(t.id))&&(!$('#tnew').checked||!S.seen.includes(t.id)));if(!pool.length)return $('#nt').textContent='Keine passenden Fragen gefunden.';const n=+$('#tn').value;let q=[];while(q.length<n)q=q.concat(shuf(pool));run(q.slice(0,n),'Wissenstest')},
 pick(b){if(!R||R.chk)return;const t=R.tasks[R.i],i=b.dataset.i;if(t.y==='tf')R.sel=[i==='true'];else if(t.y==='mc'){const k=+i;R.sel=t.a.length>1?(R.sel.includes(k)?R.sel.filter(x=>x!==k):[...R.sel,k]):[k]}else R.sel.push(+i);draw()},
-oreset(){R.sel=[];draw()},check,next(){R.i++;nextT()},again(){run(R.tasks,R.title,R.onEnd)},
+say(){const u=new SpeechSynthesisUtterance(R.tasks[R.i].s);u.lang='de-DE';u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u)},oreset(){R.sel=[];draw()},check,next(){R.i++;nextT()},again(){run(R.tasks,R.title,R.onEnd)},
 sim(b){SIM={id:+b.dataset.id,s:SC[+b.dataset.id],i:0,ok:0,log:[],bad:[],fin:false};sStep()},
 sp(b){if(!SIM.chk){SIM.sel=+b.dataset.i;sd()}},
 ss(){const m=SIM;if(m.sel<0)return;const o=m.o[m.sel],st=m.s.st[m.i];m.chk=true;m.log.push('Du: '+o[0],(o[1]?'✔ ':'✘ ')+o[2],st.r);if(o[1])m.ok++;else m.bad.push(o[2]);rec({id:'sim-'+m.id+'-'+m.i,w:'sim',y:'mc'},!!o[1]);sd()},
