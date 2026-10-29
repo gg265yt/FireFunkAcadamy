@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>FireFunk Academy</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Ctext y='9' font-size='9'%3E🚒%3C/text%3E%3C/svg%3E">
+<style>
+:root{--bg:#f4f3f1;--card:#fff;--tx:#23262b;--mu:#5d636c;--red:#c62828;--red2:#b71c1c;--blue:#1d6fb8;--ok:#2e7d32;--bad:#c0392b;--bd:#dedad5}
+:root[data-theme=dark]{--bg:#15171b;--card:#22252b;--tx:#f1f1f1;--mu:#a9aeb6;--red:#ef5350;--red2:#c62828;--blue:#5aa9e6;--ok:#66bb6a;--bad:#ff8a7a;--bd:#363a42}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));background:var(--card);border-bottom:3px solid var(--red2)}
+header b{font-size:18px}header span{margin-left:auto;font-weight:700;color:var(--red);font-size:14px}
+#app{max-width:760px;margin:0 auto;padding:16px 16px 100px}
+h1,h2,h3{line-height:1.25;margin:.2em 0 .5em}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:16px;margin:0 0 14px}
+.btn,.opt{font:inherit;min-height:48px;padding:10px 16px;border-radius:14px;border:2px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;text-align:left}
+.btn{background:var(--red2);border-color:var(--red2);color:#fff;font-weight:700;text-align:center}
+.opt{display:block;width:100%;margin:8px 0}.opt.sel{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 14%,var(--card))}
+.opt.ok{border-color:var(--ok)}.opt.bad{border-color:var(--bad)}
+.bar{height:10px;background:var(--bd);border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ok);transition:width .3s}
+.mu{color:var(--mu);font-size:14px}
+.fb{padding:12px;border-radius:12px;margin:12px 0}.fb.ok{background:color-mix(in srgb,var(--ok) 18%,var(--card))}.fb.bad{background:color-mix(in srgb,var(--bad) 18%,var(--card))}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px);z-index:6}
+nav a{flex:1;text-align:center;font-size:10px;padding:6px 0;color:var(--mu);text-decoration:none;min-height:48px}
+nav a[aria-current]{color:var(--red);font-weight:700}nav a b{display:block;font-size:20px;font-weight:400}
+@media(min-width:900px){nav{position:static;border-top:0;border-bottom:1px solid var(--bd)}nav a{font-size:14px}}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+input,textarea,select{font:inherit;width:100%;padding:10px;border-radius:10px;border:2px solid var(--bd);background:var(--bg);color:var(--tx);margin:4px 0 10px}
+input[type=checkbox]{width:auto}
+.rad{background:#17261a;color:#9dff9d;font-family:ui-monospace,monospace;padding:10px;border-radius:12px;margin:8px 0}
+details summary{cursor:pointer;min-height:32px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style></head><body>
+<header><svg viewBox="0 0 40 40" width="38" height="38" role="img" aria-label="Maskottchen: Feuerwehrhelm mit Gesicht"><path d="M6 24a14 14 0 0 1 28 0z" fill="#d62828"/><rect x="4" y="23" width="32" height="5" rx="2.5" fill="#a61c1c"/><circle cx="20" cy="31" r="7" fill="#ffd9b3"/><circle cx="17" cy="30" r="1.2" fill="#222"/><circle cx="23" cy="30" r="1.2" fill="#222"/><path d="M17 33.5q3 2 6 0" stroke="#222" fill="none"/></svg><b>FireFunk Academy</b><span id="hd"></span></header>
+<nav id="nav" aria-label="Hauptnavigation"></nav>
+<main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>String(s).toLowerCase().replace(/[.,!?;:„“"]/g,'').replace(/\s+/g,' ').trim();
+const pick=a=>a[Math.random()*a.length|0],iso=d=>d.toISOString().slice(0,10),K='ffa-v1';
+const def=()=>({xp:0,done:{},n:0,ok:0,topics:{},wrong:[],log:{},theme:''});
+const valid=o=>o&&typeof o==='object'&&Number.isFinite(o.xp)&&Number.isFinite(o.n)&&Number.isFinite(o.ok)&&['done','topics','log'].every(k=>o[k]&&typeof o[k]==='object')&&Array.isArray(o.wrong);
+let S;try{const o=JSON.parse(localStorage.getItem(K));S=valid(o)?{...def(),...o}:def()}catch(e){S=def()}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+/* ---------- Lerninhalte (vereinfachte Übungsbeispiele) ----------
+Aufgabentypen: mc (Multiple Choice), tf (Richtig/Falsch), or (Reihenfolge), fi (Lückentext), fr (eigener Funkspruch) */
+const W=[
+{id:'w1',e:'📻',t:'Welt 1: Grundlagen',L:[
+{id:'l11',t:'Warum Funk?',g:'Zweck und Grundregeln des Funkverkehrs verstehen',x:'Funk ist ein gemeinsamer Kanal: Alle in der Rufgruppe hören mit. Darum gilt: erst zuhören, dann kurz und klar sprechen – nur Einsatzrelevantes.',T:[
+{y:'tf',q:'Alle Teilnehmer einer Rufgruppe können Funksprüche mithören.',a:true,x:'Darum sollen Meldungen kurz sein und den Kanal nicht unnötig blockieren.'},
+{y:'mc',q:'Warum sollen Funksprüche kurz sein?',o:['Damit der Kanal für andere frei bleibt','Weil Funkgeräte sonst beschädigt werden','Weil lange Sätze gesetzlich verboten sind'],a:[0],x:'Ein belegter Kanal blockiert andere – möglicherweise wichtigere – Meldungen.'},
+{y:'mc',q:'Welche Angaben gehören in eine gute Meldung?',o:['Was ist los (Lage)','Wo','Meine Meinung zur Einsatzleitung','Was wird benötigt'],a:[0,1,3],x:'Lage, Ort und Bedarf – persönliche Meinungen gehören nicht in den Funk.'},
+{y:'tf',q:'Private Gespräche gehören nicht in den Funkverkehr.',a:true,x:'Der Funk dient ausschließlich dem Dienst.'},
+{y:'or',q:'Bringe den Ablauf vor und nach dem Sprechen in die richtige Reihenfolge.',o:['Zuhören: Ist der Kanal frei?','Meldung gedanklich ordnen','Sprechtaste drücken','Deutlich und kurz sprechen','Sprechtaste loslassen'],x:''},
+{y:'fi',q:'Funkdisziplin heißt: erst zuhören, dann ___.',a:['sprechen','funken'],x:'Wer dazwischenfunkt, stört den laufenden Verkehr.'}]},
+{id:'l12',t:'Funkdisziplin und Fehler',g:'Sachlich, kurz und eindeutig funken',x:'Funkdisziplin bedeutet Ruhe, Kürze und Sachlichkeit. Fehler werden kurz berichtigt, unklare Angaben werden wiederholt.',T:[
+{y:'mc',q:'Du hast dich versprochen. Was ist sinnvoll?',o:['Kurz berichtigen und die Meldung korrekt wiederholen','Schweigen','Ausführlich erklären, wie es dazu kam'],a:[0],x:'Kurz berichtigen hält den Kanal frei und die Meldung eindeutig.'},
+{y:'tf',q:'Beschimpfungen über Funk sind bei Stress in Ordnung.',a:false,x:'Sachlichkeit gilt gerade unter Stress – andere hören mit.'},
+{y:'mc',q:'Welche Formulierung ist funktauglicher?',o:['„Äh, also, wir sind jetzt, ja, so ungefähr da.“','„Einsatzstelle erreicht, Lage wird erkundet.“'],a:[1],x:'Kurz, eindeutig, ohne Füllwörter.'},
+{y:'fi',q:'Unklare Zahlen oder Namen sollte man ___.',a:['wiederholen','bestätigen'],x:'So werden Missverständnisse vermieden.'},
+{y:'tf',q:'Je mehr Details in einem Funkspruch stehen, desto besser.',a:false,x:'Wichtiges zuerst, Unwichtiges weglassen.'},
+{y:'fr',q:'Formuliere kurz: Dein Trupp ist an der Einsatzstelle angekommen.',k:[['einsatzstelle','einsatz','angekommen','eingetroffen','erreicht','da']],m:'Einsatzstelle erreicht, Lage wird erkundet.',x:'Kurze Standardmeldung.'}]}]},
+{id:'w2',e:'📡',t:'Welt 2: Funktechnik verstehen',L:[
+{id:'l21',t:'Analog und digital',g:'BOS-Digitalfunk grob einordnen',x:'Der BOS-Digitalfunk ist das digitale Funknetz der Behörden und Organisationen mit Sicherheitsaufgaben. Er arbeitet anders als analoger Funk – Verfahren dürfen nicht einfach übertragen werden.',T:[
+{y:'mc',q:'Wofür steht „BOS“?',o:['Behörden und Organisationen mit Sicherheitsaufgaben','Bundesamt ohne Sicherheit','Brand-, Ordnungs- und Sanitätsdienst'],a:[0],x:'Dazu zählen z. B. Feuerwehr, Polizei, Rettungsdienst und THW.'},
+{y:'fi',q:'Der BOS-Digitalfunk basiert auf dem Standard ___.',a:['tetra'],x:'TETRA ist der zugrunde liegende Digitalfunkstandard.'},
+{y:'mc',q:'Darf man Regeln des Analogfunks einfach auf den Digitalfunk übertragen?',o:['Ja, immer','Nein – Verfahren können sich unterscheiden, örtliche Vorgaben prüfen'],a:[1],x:'Analoge und digitale Verfahren nicht vermischen.'},
+{y:'tf',q:'Digitalfunk läuft immer direkt zwischen zwei Geräten, ohne Netz.',a:false,x:'Im Normalfall (TMO) läuft die Kommunikation über das Funknetz.'},
+{y:'tf',q:'Örtliche Dienstanweisungen haben Vorrang vor vereinfachten Lernbeispielen.',a:true,x:'Diese App ergänzt die Ausbildung, ersetzt sie aber nicht.'},
+{y:'mc',q:'Welche Aussage über Funkverfahren ist am sichersten?',o:['Sie sind überall in Deutschland identisch','Teile sind regional oder organisatorisch geregelt','Sie sind frei erfunden'],a:[1],x:'Im Zweifel gilt die Vorgabe deiner Organisation.'}]},
+{id:'l22',t:'TMO und DMO',g:'Betriebsarten unterscheiden',x:'TMO: Kommunikation über das Funknetz. DMO: direkt zwischen Geräten, ohne Netz, geringere Reichweite. In einer Rufgruppe sprechen mehrere Teilnehmer gemeinsam.',T:[
+{y:'mc',q:'Was beschreibt TMO?',o:['Kommunikation über das Digitalfunknetz','Direktes Funken zwischen Geräten ohne Netz','Das Ausschalten des Geräts'],a:[0],x:'TMO = Trunked Mode Operation.'},
+{y:'mc',q:'Was beschreibt DMO?',o:['Direktes Funken zwischen Geräten ohne Netz, begrenzte Reichweite','Funken nur über die Leitstelle','Eine Statusmeldung'],a:[0],x:'DMO = Direct Mode Operation.'},
+{y:'mc',q:'Im Keller gibt es keine Netzabdeckung. Welche Betriebsart kann in Betracht kommen?',o:['TMO','DMO','Keine'],a:[1],x:'DMO braucht kein Netz, hat aber begrenzte Reichweite. Vorgaben der Organisation beachten.'},
+{y:'tf',q:'Eine Rufgruppe ist eine Gruppe von Teilnehmern, die gemeinsam kommunizieren.',a:true,x:'Die Einteilung ist regional bzw. organisatorisch geregelt.'},
+{y:'fi',q:'TMO steht für Trunked Mode ___.',a:['operation'],x:''},
+{y:'mc',q:'Du hörst plötzlich nichts mehr. Erste sinnvolle Prüfung?',o:['Rufgruppe, Netzanzeige und Akku am Gerät prüfen','Lauter ins Gerät rufen','Das Gerät austauschen, ohne etwas zu prüfen'],a:[0],x:'Erst die einfachen Ursachen prüfen.'}]}]},
+{id:'w3',e:'🗣️',t:'Welt 3: Rufnamen und Gesprächsablauf',L:[
+{id:'l31',t:'Rufnamen und Anruf',g:'Einen Funkverkehr korrekt eröffnen',x:'Ein Anruf nennt zuerst den Angerufenen, dann sich selbst. Funkrufnamen sind regional geregelt; die Beispiele in dieser App („Florian Übung 1/1“) sind ausgedacht.',T:[
+{y:'mc',q:'Wie beginnt ein Anruf im vereinfachten Übungsbeispiel?',o:['Angerufener, hier Anrufer','Anrufer, hier Angerufener','Nur „Hallo?“'],a:[0],x:'Der Angerufene weiß so sofort, dass er gemeint ist.'},
+{y:'tf',q:'Funkrufnamen sind bundesweit einheitlich festgelegt.',a:false,x:'Aufbau und Vergabe sind regional bzw. organisatorisch geregelt.'},
+{y:'fi',q:'Leitstelle, hier Florian Übung 1/1, ___.',a:['kommen'],x:'Aufforderung zur Antwort im vereinfachten Beispiel.'},
+{y:'or',q:'Ordne den Ablauf eines kurzen Funkgesprächs.',o:['Anruf (Angerufener, hier Anrufer)','Antwort des Angerufenen','Meldung des Anrufers','Quittierung („verstanden“)','Gesprächsabschluss'],x:''},
+{y:'mc',q:'Warum nennt man zuerst den Angerufenen?',o:['Damit der richtige Teilnehmer sofort weiß, dass er gemeint ist','Damit es länger dauert','Das ist nur Höflichkeit'],a:[0],x:''},
+{y:'fr',q:'Rufe die Leitstelle (Übungsname: Florian Übung 1/1).',k:[['leitstelle'],['hier'],['florian']],m:'Leitstelle, hier Florian Übung 1/1, kommen.',x:'Angerufener, eigener Name, Aufforderung zur Antwort.'}]},
+{id:'l32',t:'Quittieren und Rückfragen',g:'Meldungen bestätigen und Unklarheiten klären',x:'Wer eine Meldung erhält, quittiert sie (z. B. „verstanden“). Bei Unklarheit bittet man um Wiederholung, statt zu raten.',T:[
+{y:'mc',q:'Was bedeutet „quittieren“?',o:['Den Empfang einer Meldung bestätigen','Eine Meldung ignorieren','Das Funkgerät ausschalten'],a:[0],x:''},
+{y:'mc',q:'Du hast eine Meldung nicht verstanden. Was tust du?',o:['Um Wiederholung bitten','Raten und handeln','Schweigen'],a:[0],x:'Raten kann gefährlich sein.'},
+{y:'tf',q:'Wichtige Angaben wie Adressen sollten bei Unklarheit wiederholt und bestätigt werden.',a:true,x:''},
+{y:'or',q:'Ordne den Ablauf einer Rückfrage.',o:['Zuhören','Unklarheit erkennen','Sprechtaste drücken','Um Wiederholung bitten','Wiederholte Meldung quittieren'],x:''},
+{y:'fi',q:'Mit dem Wort ___ bestätige ich, dass ich eine Meldung verstanden habe.',a:['verstanden'],x:''},
+{y:'fr',q:'Bitte die Leitstelle, eine undeutliche Meldung zu wiederholen.',k:[['wiederhol','nochmal','erneut']],m:'Leitstelle, bitte wiederholen, Meldung unvollständig verstanden.',x:''}]}]},
+{id:'w4',e:'🚦',t:'Welt 4: Statusmeldungen und Abläufe',L:[
+{id:'l41',t:'Status 1 bis 6',g:'Verbreitete Fahrzeugstatus einordnen',x:'Statusmeldungen sind kurze Zustandsmeldungen eines Fahrzeugs. Die hier genutzten Status 1–6 sind weit verbreitet, Details können regional oder organisatorisch abweichen – im Zweifel gilt deine Vorgabe.',T:[
+{y:'mc',q:'Was bedeutet Status 4 im verbreiteten Übungsbeispiel?',o:['Einsatzstelle an','Nicht einsatzbereit','Sprechwunsch'],a:[0],x:'Status 4 meldet das Eintreffen an der Einsatzstelle.'},
+{y:'mc',q:'Wofür steht Status 5?',o:['Einsatzbereit auf Wache','Sprechwunsch','Einsatz übernommen'],a:[1],x:'Mit Status 5 meldet ein Fahrzeug, dass es sprechen möchte.'},
+{y:'fi',q:'Status 6 bedeutet: ___ einsatzbereit.',a:['nicht'],x:'Status 6 = nicht einsatzbereit.'},
+{y:'or',q:'Ordne die Statusfolge eines Einsatzes (vereinfacht).',o:['Status 3 – Einsatz übernommen','Status 4 – Einsatzstelle an','Status 1 – einsatzbereit über Funk'],x:''},
+{y:'tf',q:'Statusbedeutungen sind in jeder Organisation und jedem Bundesland garantiert identisch.',a:false,x:'Es gibt weit verbreitete Muster, aber regionale Abweichungen sind möglich.'},
+{y:'mc',q:'Du bist unterwegs, per Funk erreichbar und sofort einsatzbereit. Welcher Status passt im Beispiel?',o:['Status 1','Status 2','Status 6'],a:[0],x:'Status 1 = einsatzbereit über Funk, Status 2 = einsatzbereit auf der Wache.'}]},
+{id:'l42',t:'Status im Betrieb',g:'Statusmeldungen sinnvoll einsetzen',x:'Statusmeldungen sparen Sprechfunk, ersetzen aber nicht jede Meldung. Die Leitstelle erkennt daran, wo ein Fahrzeug im Ablauf steht.',T:[
+{y:'mc',q:'Wozu dienen Statusmeldungen?',o:['Kurze Zustandsmeldungen ohne langes Sprechen','Ersatz für alle Funksprüche','Private Nachrichten'],a:[0],x:''},
+{y:'tf',q:'Eine Statusmeldung ersetzt immer jede Lagemeldung.',a:false,x:'Die Lage muss weiterhin gemeldet werden, wenn sie relevant ist.'},
+{y:'mc',q:'Dein Fahrzeug hat einen Defekt. Welcher Status passt im Beispiel?',o:['Status 1','Status 6','Status 4'],a:[1],x:'Nicht einsatzbereit = Status 6.'},
+{y:'fi',q:'Wer sprechen möchte, sendet im Beispiel den Status ___ (Sprechwunsch).',a:['5','fünf'],x:''},
+{y:'tf',q:'Die Leitstelle kann über Statusmeldungen erkennen, in welcher Phase sich ein Fahrzeug befindet.',a:true,x:''},
+{y:'mc',q:'Du bist unsicher, was ein Status bedeutet. Was gilt?',o:['Die Vorgabe deiner Organisation bzw. deines Landes','Was am wahrscheinlichsten klingt','Das, was diese App sagt'],a:[0],x:'Diese App ist nur eine Ergänzung zur Ausbildung.'}]}]},
+{id:'w5',e:'✍️',t:'Welt 5: Funksprüche formulieren',L:[
+{id:'l51',t:'Kurz und klar',g:'Meldungen knapp und eindeutig aufbauen',x:'Wichtiges zuerst: Was ist los, wo, was wird gebraucht. Unsicheres wird als unsicher gekennzeichnet, nicht geraten.',T:[
+{y:'mc',q:'Welcher Funkspruch ist am besten?',o:['„Leitstelle, wir brauchen Hilfe, weil es hier ganz schlimm ist.“','„Leitstelle, Florian Übung 1/1: Verkehrsunfall, zwei Pkw, eine Person eingeklemmt.“','„Schick mal wen.“'],a:[1],x:'Konkret: Lage, Anzahl, Gefährdung.'},
+{y:'or',q:'Ordne die Teile einer Lagemeldung (vereinfacht).',o:['Anruf bzw. eigener Name','Art der Lage','Ort bzw. Gefährdung','Eingeleitete Maßnahmen','Benötigte Unterstützung'],x:''},
+{y:'tf',q:'Das Wichtigste gehört an den Anfang einer Meldung.',a:true,x:''},
+{y:'fi',q:'Füllwörter wie „äh“ gehören nicht in einen ___.',a:['funkspruch'],x:''},
+{y:'mc',q:'Was ist an „Es brennt irgendwo, glaube ich, vielleicht im Haus“ problematisch?',o:['Unklar und unsicher: Ort und Lage fehlen','Zu kurz','Zu viele Zahlen'],a:[0],x:''},
+{y:'fr',q:'Melde: Verkehrsunfall, zwei Pkw, eine Person eingeklemmt.',k:[['verkehrsunfall','unfall'],['zwei','2'],['eingeklemmt']],m:'Verkehrsunfall, zwei Pkw, eine Person eingeklemmt.',x:'Lage, Anzahl, Gefährdung.'}]},
+{id:'l52',t:'Meldungen verbessern',g:'Fehlerhafte Funksprüche erkennen und korrigieren',x:'Gute Meldungen entstehen durch Streichen und Ergänzen: Kernaussage bestimmen, Überflüssiges weglassen, Ort und Bedarf ergänzen.',T:[
+{y:'mc',q:'Verbessere: „Wir sind jetzt da und gucken mal.“',o:['Einsatzstelle erreicht, Lage wird erkundet.','Wir gucken.','Ende.'],a:[0],x:''},
+{y:'mc',q:'Was ist an „Hallo Leitstelle, hier irgendwer, alles klar?“ falsch?',o:['Kein Funkrufname und unklare Aussage','Zu viele Fachbegriffe','Zu langsam gesprochen'],a:[0],x:''},
+{y:'mc',q:'Was gehört zu einer verständlichen Nachforderung?',o:['Was wird benötigt','Wie viele','Eine lange Vorgeschichte','Wohin'],a:[0,1,3],x:'Bedarf, Menge, Ziel – ohne lange Begründung.'},
+{y:'tf',q:'Eine Meldung darf ruhig geraten sein, wenn man schnell sein will.',a:false,x:'Unsicheres wird als unsicher gemeldet.'},
+{y:'or',q:'Ordne die Schritte zum Verbessern einer Meldung.',o:['Kernaussage bestimmen','Überflüssiges streichen','Ort und Bedarf ergänzen','Laut und deutlich funken'],x:''},
+{y:'fr',q:'Fordere einen weiteren Rettungswagen an (Übung).',k:[['rettungs','rtw'],['weiter','zusätzlich','nachfordern','nachforder','anfordern','fordere']],m:'Leitstelle, Florian Übung 1/1: weiteren Rettungswagen zur Einsatzstelle nachfordern.',x:'Bedarf und Ziel nennen.'}]}]},
+{id:'w6',e:'🚒',t:'Welt 6: Funk im Einsatz',L:[
+{id:'l61',t:'Anfahrt und Eintreffen',g:'Funkverkehr von der Anfahrt bis zur ersten Lage',x:'Auf der Anfahrt bleibt der Funk sachlich und kurz. Nach dem Eintreffen folgen Eintreffmeldung und erste Lagemeldung.',T:[
+{y:'mc',q:'Was meldest du beim Eintreffen zuerst?',o:['Einsatzstelle erreicht','Die Vorgeschichte des Hausbesitzers','Nichts'],a:[0],x:'Kurz und eindeutig; regionale Verfahren (z. B. Status 4) beachten.'},
+{y:'tf',q:'Während der Anfahrt sind längere private Gespräche über Funk in Ordnung.',a:false,x:''},
+{y:'mc',q:'Du hast eine Nachricht der Leitstelle nicht verstanden. Was tust du?',o:['Rückfrage stellen','Raten','Ignorieren'],a:[0],x:''},
+{y:'or',q:'Ordne den Ablauf (vereinfacht).',o:['Einsatz übernehmen (Status 3)','Anfahrt','Einsatzstelle erreicht (Status 4)','Erste Lagemeldung','Weitere Maßnahmen melden'],x:''},
+{y:'fi',q:'Nach dem Eintreffen folgt die erste ___meldung.',a:['lage'],x:''},
+{y:'fr',q:'Gib die erste Lagemeldung: Wohnungsbrand im ersten Obergeschoss, keine Personen mehr im Gebäude.',k:[['wohnungsbrand','brand'],['obergeschoss','og','etage'],['keine person','niemand','keine menschen']],m:'Erste Lage: Wohnungsbrand im ersten Obergeschoss, keine Personen mehr im Gebäude.',x:'Lage, Ort, Gefährdung.'}]},
+{id:'l62',t:'Rückmeldung und Einsatzende',g:'Aufträge zurückmelden und den Einsatz abschließen',x:'Erledigte Aufträge werden kurz zurückgemeldet, damit die Leitung die Lage kennt. Am Ende wird die Einsatzbereitschaft gemeldet.',T:[
+{y:'mc',q:'Warum melden Einheiten Aufträge zurück?',o:['Damit die Leitung die Lage aktuell kennt','Damit der Funk voll bleibt','Aus reiner Gewohnheit'],a:[0],x:''},
+{y:'tf',q:'Ein erledigter Auftrag sollte kurz zurückgemeldet werden.',a:true,x:''},
+{y:'mc',q:'Welche Rückmeldung ist gut?',o:['„Auftrag Menschenrettung abgeschlossen, Person übergeben.“','„Alles erledigt, glaub ich.“','„Hm.“'],a:[0],x:''},
+{y:'fi',q:'Am Einsatzende melde ich, dass ich wieder ___ bin.',a:['einsatzbereit'],x:''},
+{y:'or',q:'Ordne das Einsatzende (vereinfacht).',o:['Maßnahmen abschließen','Rückmeldung an die Leitstelle','Einsatzbereitschaft melden','Rückfahrt'],x:''},
+{y:'mc',q:'Dein Fahrzeug ist zurück und wieder einsatzbereit auf der Wache. Welcher Status passt im Beispiel?',o:['Status 2','Status 4','Status 5'],a:[0],x:'Status 2 = einsatzbereit auf Wache.'}]}]}];
+const A=[],LS={},WN={sim:'Funk-Simulator'};
+W.forEach(w=>{WN[w.id]=w.t;w.L.forEach(l=>{LS[l.id]=l;l.T.forEach((t,i)=>{t.id=l.id+'-'+i;t.w=w.id;A.push(t)})})});
+const NL=Object.keys(LS).length,nd=()=>Object.keys(S.done).length;
+const LV=[[0,'Funkneuling'],[100,'Funkanwärter'],[250,'Funkhelfer'],[500,'Funkprofi'],[900,'Kommunikationsexperte'],[1400,'Einsatzfunk-Spezialist']];
+const lvl=()=>{let i=0;LV.forEach((l,k)=>{if(S.xp>=l[0])i=k});return{n:LV[i][1],next:LV[i+1]}};
+const BD=[['🥇','Erste Lektion',()=>nd()>=1],['📘','3 Lektionen',()=>nd()>=3],['💯','50 richtige Antworten',()=>S.ok>=50],['🎓','Alle Lektionen',()=>nd()>=NL],['🎯','Perfekte Lektion',()=>Object.values(S.done).some(d=>d&&d.best===100)]];
+const gain=n=>{const d=iso(new Date());S.log[d]=(Number(S.log[d])||0)+n;S.xp+=n};
+const streak=()=>{let c=0,d=new Date();if(!S.log[iso(d)])d.setDate(d.getDate()-1);while(S.log[iso(d)]){c++;d.setDate(d.getDate()-1)}return c};
+function rec(t,ok){S.n++;if(ok)S.ok++;const k=S.topics[t.w]||(S.topics[t.w]={n:0,ok:0});k.n++;if(ok)k.ok++;S.wrong=S.wrong.filter(x=>x!==t.id);if(!ok)S.wrong.push(t.id);if(ok)gain(t.y==='or'||t.y==='fr'?15:10);save();hd()}
+const hd=()=>{$('#hd').textContent=S.xp+' XP · '+lvl().n};
+const theme=()=>{document.documentElement.dataset.theme=S.theme||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')};
+const disc='<p class="mu">Vereinfachte Übungsinhalte als Ergänzung zur offiziellen Ausbildung. Örtliche Dienstanweisungen und landesspezifische Regeln haben Vorrang. Es findet keine echte Funkübertragung statt.</p>';
+/* ---------- Aufgaben-Runner ---------- */
+let R=null,SIM=null;
+const msgs={ok:['Stark gefunkt!','Meldung korrekt!','Gut aufgepasst!'],bad:['Fast richtig – schau dir die Erklärung an.','Fehler sind Teil des Lernens. Versuch es noch einmal!']};
+function run(tasks,title,onEnd){R={tasks,i:0,ok:0,title,onEnd,res:[],fin:false};nextT()}
+function nextT(){const t=R.tasks[R.i];if(!t)return fin();R.sel=[];R.chk=false;R.fb='';R.val='';R.ord=t.y==='or'?shuf(t.o.map((_,i)=>i)):0;draw()}
+function draw(){const t=R.tasks[R.i],c=R.chk,s=R.sel,p=Math.round(R.i/R.tasks.length*100);let b='';
+if(t.y==='mc')b=(t.a.length>1?'<p class="mu">Mehrere Antworten sind richtig.</p>':'')+t.o.map((o,i)=>`<button class="opt ${c?(t.a.includes(i)?'ok':s.includes(i)?'bad':''):s.includes(i)?'sel':''}" data-a="pick" data-i="${i}" aria-pressed="${s.includes(i)}">${esc(o)}</button>`).join('');
+else if(t.y==='tf')b=[true,false].map(v=>`<button class="opt ${c?(t.a===v?'ok':s[0]===v?'bad':''):s[0]===v?'sel':''}" data-a="pick" data-i="${v}" aria-pressed="${s[0]===v}">${v?'Richtig':'Falsch'}</button>`).join('');
+else if(t.y==='or')b=`<p class="mu">Tippe die Schritte in der richtigen Reihenfolge an.</p><ol>${s.map(i=>`<li>${esc(t.o[i])}</li>`).join('')}</ol>`+R.ord.filter(i=>!s.includes(i)).map(i=>`<button class="opt" data-a="pick" data-i="${i}" ${c?'disabled':''}>${esc(t.o[i])}</button>`).join('')+(c?'':'<button class="opt" data-a="oreset">↺ Zurücksetzen</button>');
+else b=t.y==='fr'?`<textarea id="in" rows="3" aria-label="Dein Funkspruch" ${c?'disabled':''}>${esc(R.val)}</textarea>`:`<input id="in" aria-label="Antwort" autocomplete="off" value="${esc(R.val)}" ${c?'disabled':''}>`;
+$('#app').innerHTML=`<div class="card"><div class="bar" role="progressbar" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><i style="width:${p}%"></i></div><p class="mu">${esc(R.title)} · Aufgabe ${R.i+1} von ${R.tasks.length}</p><h2>${esc(t.q)}</h2>${b}<div aria-live="polite">${R.fb}</div>${c?'<button class="btn" data-a="next">Weiter</button>':'<button class="btn" data-a="check">Überprüfen</button>'} <button class="opt" style="width:auto" data-a="home">Beenden</button></div>`}
+function check(){const t=R.tasks[R.i];if(R.chk)return;let ok=false,x=t.x||'';
+if(t.y==='fi'||t.y==='fr'){R.val=$('#in').value;if(!norm(R.val))return}else if(!R.sel.length)return;
+if(t.y==='mc')ok=R.sel.length===t.a.length&&t.a.every(i=>R.sel.includes(i));
+else if(t.y==='tf')ok=R.sel[0]===t.a;
+else if(t.y==='or'){ok=R.sel.length===t.o.length&&R.sel.every((a,i)=>a===i);if(!ok)x='Richtige Reihenfolge: '+t.o.map((o,i)=>(i+1)+'. '+o).join(' → ')}
+else if(t.y==='fi'){ok=t.a.some(a=>norm(a)===norm(R.val));if(!ok)x='Richtig: '+t.a[0]+'. '+x}
+else{const v=norm(R.val),m=t.k.filter(g=>!g.some(w=>v.includes(w)));ok=!m.length;x='Musterlösung: „'+t.m+'“'+(m.length?' · Prüfe noch: '+m.map(g=>g[0]).join(', '):'')}
+R.chk=true;if(ok)R.ok++;R.res.push({t,ok});rec(t,ok);
+R.fb=`<div class="fb ${ok?'ok':'bad'}"><b>${ok?pick(msgs.ok):pick(msgs.bad)}</b><br>${esc(x)}</div>`;draw()}
+function fin(){if(R.fin)return;R.fin=true;const n=R.tasks.length,p=Math.round(R.ok/n*100),bonus=R.onEnd?R.onEnd(p):0;if(bonus)gain(bonus);save();hd();
+const w=R.res.filter(r=>!r.ok),tp={};R.res.forEach(r=>{const k=tp[r.t.w]||(tp[r.t.w]=[0,0]);k[0]++;if(!r.ok)k[1]++});
+const wo=Object.entries(tp).sort((a,b)=>b[1][1]/b[1][0]-a[1][1]/a[1][0])[0];
+$('#app').innerHTML=`<div class="card"><h1>${p>=70?'Stark gefunkt! 🎉':'Gut geübt – bleib dran 💪'}</h1><p>${R.ok} von ${n} richtig (${p} %)${bonus?` · +${bonus} Bonus-XP`:''}</p>${wo&&wo[1][1]?`<p>Empfehlung: Übe „${esc(WN[wo[0]]||wo[0])}“ noch einmal im Bereich Üben.</p>`:''}${w.length?'<h3>Zum Nachlesen</h3>'+w.map(r=>`<p><b>${esc(r.t.q)}</b><br><span class="mu">${esc(r.t.x||'')}</span></p>`).join(''):''}<button class="btn" data-a="again">Nochmal</button> <button class="opt" style="width:auto" data-a="home">Zurück</button></div>`}
+/* ---------- Simulator (rein simuliert) ---------- */
+const SC=[
+{t:'Meldung bei der Leitstelle',st:[
+{s:'Du möchtest die Leitstelle rufen. Was sagst du?',o:[['Hallo, hier ist die Feuerwehr, ich bräuchte mal was.',0,'Es fehlen Angerufener und eigener Funkrufname.'],['Leitstelle, hier Florian Übung 1/1, kommen.',1,'Angerufener, Absender, Aufforderung zur Antwort – kurz und eindeutig.'],['Hört mich jemand?',0,'Zu unklar: Niemand wird direkt angesprochen.']],r:'Leitstelle (simuliert): „Florian Übung 1/1, hier Leitstelle, kommen.“'},
+{s:'Melde: Einsatzstelle erreicht.',o:[['Leitstelle, Florian Übung 1/1: Einsatzstelle erreicht, Lage wird erkundet.',1,'Kurz, vollständig, nur das Wesentliche.'],['Also, wir sind jetzt so ungefähr da, glaube ich, es sieht nach etwas Größerem aus …',0,'Zu unklar und ausschweifend.']],r:'Leitstelle (simuliert): „Verstanden.“'},
+{s:'Die Leitstelle fragt nach der Lage. Du siehst: Wohnungsbrand im 2. Obergeschoss, eine Person wird vermisst.',o:[['Erste Lage: Wohnungsbrand zweites Obergeschoss, eine Person vermisst, Menschenrettung eingeleitet.',1,'Lage, Ort und Maßnahme – klar und knapp.'],['Brennt.',0,'Zu knapp: Ort und Gefährdung fehlen.'],['Es brennt irgendwo oben, wir wissen noch nicht genau, ob jemand drin ist, und der Hausmeister sagt …',0,'Zu lang und unsicher; Wichtiges zuerst melden.']],r:'Leitstelle (simuliert): „Verstanden, Lage notiert.“'}]},
+{t:'Unklare Meldung klären',st:[
+{s:'Leitstelle (simuliert): „Florian Übung 1/1, Einsatzort … [Rauschen] … Straße … kommen.“ Du hast nur Teile verstanden.',o:[['Leitstelle, bitte wiederholen, Meldung unvollständig verstanden, kommen.',1,'Sachliche Bitte um Wiederholung.'],['Was? Sag das mal ordentlich!',0,'Der Ton ist unsachlich.'],['Wir fahren einfach mal los.',0,'Raten statt Nachfragen ist riskant.']],r:'Leitstelle (simuliert): „Ich wiederhole: Einsatzort Beispielstraße 5, kommen.“'},
+{s:'Du hast die Angabe jetzt verstanden. Was tust du?',o:[['Leitstelle, Florian Übung 1/1: verstanden.',1,'Quittieren schafft Klarheit.'],['(nichts sagen und losfahren)',0,'Ohne Quittung weiß die Leitstelle nicht, ob du es verstanden hast.']],r:'Leitstelle (simuliert): „Ende.“'}]}];
+function sStep(){const m=SIM;m.o=shuf(m.s.st[m.i].o);m.sel=-1;m.chk=false;sd()}
+function sd(){const m=SIM,st=m.s.st[m.i];$('#app').innerHTML=`<div class="card"><p class="mu">⚠️ Simulierte Übung – keine echte Funkübertragung, keine offizielle Einsatzanweisung.</p><div class="rad">RG ÜBUNG · Florian Übung 1/1 · ${m.chk?'EMPFANG':'BEREIT'}</div><div aria-live="polite">${m.log.map(l=>`<p>${esc(l)}</p>`).join('')}</div><h2>${esc(st.s)}</h2>${m.o.map((o,i)=>`<button class="opt${m.chk?(o[1]?' ok':i===m.sel?' bad':''):i===m.sel?' sel':''}" data-a="sp" data-i="${i}">${esc(o[0])}</button>`).join('')}<button class="btn" data-a="${m.chk?'sn':'ss'}">${m.chk?'Weiter':'Senden 📡'}</button> <button class="opt" style="width:auto" data-a="home">Beenden</button></div>`}
+function se(){const m=SIM,n=m.s.st.length;if(!m.fin){m.fin=true;gain(20);save();hd()}$('#app').innerHTML=`<div class="card"><h1>Auswertung</h1><p>${m.ok} von ${n} Schritten gut gefunkt (+20 Bonus-XP).</p>${m.bad.length?'<h3>Verbesserungsvorschläge</h3>'+m.bad.map(b=>`<p>• ${esc(b)}</p>`).join(''):'<p>Alles korrekt – stark gefunkt!</p>'}<button class="btn" data-a="sim" data-id="${m.id}">Neu starten</button> <button class="opt" style="width:auto" data-a="home">Zurück</button></div>`}
+/* ---------- Nachschlagewerk ---------- */
+const G=[
+{t:'BOS',c:'Begriff',d:'Behörden und Organisationen mit Sicherheitsaufgaben, z. B. Feuerwehr, Polizei, Rettungsdienst, THW.',l:'l21'},
+{t:'TMO',c:'BOS-Digitalfunk',d:'Trunked Mode Operation: Kommunikation über das Digitalfunknetz.',l:'l22'},
+{t:'DMO',c:'BOS-Digitalfunk',d:'Direct Mode Operation: direkte Verbindung zwischen Geräten ohne Netz, begrenzte Reichweite.',l:'l22'},
+{t:'Rufgruppe',c:'BOS-Digitalfunk',d:'Gruppe von Teilnehmern, die gemeinsam kommunizieren. Einteilung regional bzw. organisatorisch geregelt.',l:'l22'},
+{t:'SDS',c:'BOS-Digitalfunk',d:'Short Data Service: Kurzdatendienst, u. a. für Statusmeldungen und Kurznachrichten.'},
+{t:'Funkrufname',c:'Begriff',d:'Name, mit dem ein Teilnehmer angesprochen wird. Aufbau regional unterschiedlich; Beispiele in dieser App sind ausgedacht.',l:'l31'},
+{t:'Quittieren',c:'Funkdisziplin',d:'Den Empfang einer Meldung bestätigen, z. B. mit „verstanden“.',l:'l32'},
+{t:'Funkdisziplin',c:'Funkdisziplin',d:'Zuhören, kurz fassen, nichts Privates, sachlich bleiben, Fehler kurz berichtigen.',l:'l12'},
+{t:'Statusmeldungen',c:'Status',d:'Häufig genutzte Fahrzeugstatus (regional prüfen!): 1 einsatzbereit über Funk · 2 einsatzbereit auf Wache · 3 Einsatz übernommen · 4 Einsatzstelle an · 5 Sprechwunsch · 6 nicht einsatzbereit. Verbindlich sind die Vorgaben deiner Organisation bzw. deines Bundeslandes.',l:'l41'},
+{t:'Muster: Anruf',c:'Musterfunkspruch',d:'Vereinfachtes Übungsbeispiel mit ausgedachtem Namen.',m:'Leitstelle, hier Florian Übung 1/1, kommen.',l:'l31'},
+{t:'Muster: Wiederholung erbitten',c:'Musterfunkspruch',d:'Bei undeutlicher oder unvollständiger Meldung.',m:'Leitstelle, bitte wiederholen, Meldung unvollständig verstanden.',l:'l32'},
+{t:'Muster: Einsatzstelle erreicht',c:'Musterfunkspruch',d:'Kurze Standardmeldung als Übungsbeispiel.',m:'Leitstelle, Florian Übung 1/1: Einsatzstelle erreicht, Lage wird erkundet.',l:'l12'}];
+function refList(){const q=norm($('#q').value),c=$('#cat').value;$('#rl').innerHTML=G.map((g,i)=>[g,i]).filter(([g])=>(!c||g.c===c)&&norm(g.t+' '+g.d+' '+g.c).includes(q)).sort((a,b)=>a[0].t.localeCompare(b[0].t,'de')).map(([g,i])=>`<details class="card"><summary><b>${esc(g.t)}</b> <span class="mu">${esc(g.c)}</span></summary><p>${esc(g.d)}</p>${g.m?`<p class="rad">${esc(g.m)}</p><button class="opt" style="width:auto" data-a="copy" data-i="${i}">📋 Kopieren</button>`:''}${g.l?`<button class="opt" style="width:auto" data-a="lesson" data-id="${g.l}">Zur Lektion</button>`:''}</details>`).join('')||'<p>Keine Treffer. Versuche einen anderen Suchbegriff.</p>'}
+/* ---------- Seiten ---------- */
+const P={
+lernen:()=>`<div class="card"><h1>Lernpfad</h1><p class="mu">Alle Lektionen sind frei wählbar – ohne Anmeldung, ohne Limits.</p></div>`+W.map(w=>{const d=w.L.filter(l=>S.done[l.id]).length;return `<section class="card"><h2>${w.e} ${esc(w.t)}</h2><div class="bar"><i style="width:${d/w.L.length*100}%"></i></div><p class="mu">${d} von ${w.L.length} Lektionen abgeschlossen</p>${w.L.map(l=>`<button class="opt" data-a="lesson" data-id="${l.id}">${S.done[l.id]?'✅':'▶️'} ${esc(l.t)}<br><span class="mu">${esc(l.g)}${S.done[l.id]?' · Bestwert '+S.done[l.id].best+' %':''}</span></button>`).join('')}</section>`}).join('')+disc,
+ueben:()=>`<div class="card"><h1>Üben</h1><p class="mu">Freies Training, beliebig oft wiederholbar.</p>${W.map(w=>`<button class="opt" data-a="prac" data-id="${w.id}">${w.e} ${esc(w.t)}</button>`).join('')}<button class="opt" data-a="prac" data-id="wrong">🔁 Falsch beantwortete wiederholen (${S.wrong.length})</button><p id="nt" role="status" class="mu"></p></div>`,
+sim:()=>`<div class="card"><h1>Funk-Simulator</h1><p class="mu">Simulierte Gespräche mit einem virtuellen Gegenüber – keine echte Funkübertragung.</p>${SC.map((s,i)=>`<button class="opt" data-a="sim" data-id="${i}">📻 ${esc(s.t)}</button>`).join('')}</div>`,
+test:()=>`<div class="card"><h1>Wissenstest</h1><label>Themenbereich<select id="tw"><option value="all">Gemischt</option>${W.map(w=>`<option value="${w.id}">${esc(w.t)}</option>`).join('')}</select></label><label>Anzahl der Fragen<select id="tn">${[5,10,20,30].map(n=>`<option>${n}</option>`).join('')}</select></label><label><input type="checkbox" id="tx"> Nur falsch beantwortete Fragen</label><br><button class="btn" data-a="test">Test starten</button><p id="nt" role="status" class="mu"></p></div>`,
+stat(){const l=lvl(),tp=Object.entries(S.topics),days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return iso(d)}),mx=Math.max(1,...days.map(d=>Number(S.log[d])||0));
+return `<div class="card"><h1>Statistik</h1>${S.n?'':'<p>Noch keine Lernaktivität – starte unter „Lernen“ eine Lektion.</p>'}<p>🏅 <b>${esc(l.n)}</b> · ${S.xp} XP${l.next?` (nächste Stufe ab ${l.next[0]} XP)`:''}</p><p>✅ ${nd()} von ${NL} Lektionen · ${S.n} Antworten, ${S.ok} richtig (${S.n?Math.round(S.ok/S.n*100):0} %) · 🔥 Serie: ${streak()} Tage</p></div>
+<div class="card"><h2>XP der letzten 7 Tage</h2><div style="display:flex;align-items:flex-end;gap:6px;height:90px">${days.map(d=>`<div style="flex:1;text-align:center"><div style="background:var(--blue);height:${(Number(S.log[d])||0)/mx*60}px;border-radius:6px 6px 0 0" title="${d}"></div><span class="mu">${d.slice(8)}</span></div>`).join('')}</div></div>
+<div class="card"><h2>Abzeichen</h2>${BD.map(b=>`<p style="opacity:${b[2]()?1:.45}">${b[0]} ${b[1]} ${b[2]()?'✔':'(noch offen)'}</p>`).join('')}</div>
+<div class="card"><h2>Themen mit Fehlern</h2>${tp.length?tp.map(([k,v])=>`<p>${esc(WN[k]||k)}: ${v.n-v.ok} Fehler von ${v.n}</p><div class="bar"><i style="background:var(--bad);width:${(v.n-v.ok)/Math.max(1,v.n)*100}%"></i></div>`).join(''):'<p class="mu">Noch keine Daten.</p>'}</div>
+<div class="card"><h2>Beste Ergebnisse</h2>${nd()?Object.entries(S.done).map(([k,v])=>`<p>${esc(LS[k]?LS[k].t:k)}: ${v.best} % (${v.n}× abgeschlossen)</p>`).join(''):'<p class="mu">Noch keine Lektion abgeschlossen.</p>'}</div>`},
+ref:()=>`<div class="card"><h1>Nachschlagewerk</h1><label>Suche<input id="q" type="search" placeholder="Begriff suchen …"></label><label>Kategorie<select id="cat"><option value="">Alle</option>${[...new Set(G.map(g=>g.c))].map(c=>`<option>${esc(c)}</option>`).join('')}</select></label></div><div id="rl"></div>${disc}`,
+set:()=>`<div class="card"><h1>Einstellungen</h1><h3>Darstellung</h3><button class="opt" style="width:auto;display:inline-block" data-a="th" data-id="light">☀️ Hell</button> <button class="opt" style="width:auto;display:inline-block" data-a="th" data-id="dark">🌙 Dunkel</button><h3>Datensicherung</h3><p class="mu">Dein Fortschritt liegt nur in diesem Browser. Es werden keine Daten an einen Server gesendet.</p><button class="btn" data-a="exp">Fortschritt exportieren</button><label class="opt" style="margin-top:10px">Fortschritt importieren<input type="file" id="imp" accept=".json,application/json"></label><button class="opt" data-a="reset">🗑️ Fortschritt zurücksetzen</button><p id="nt" role="status"></p></div>${disc}`};
+const RT=[['lernen','Lernen','📚'],['ueben','Üben','🔁'],['sim','Simulator','📻'],['test','Test','📝'],['stat','Statistik','📊'],['ref','Lexikon','📖'],['set','Mehr','⚙️']];
+function route(){R=null;SIM=null;const h=location.hash.slice(1),r=Object.hasOwn(P,h)?h:'lernen';$('#nav').innerHTML=RT.map(x=>`<a href="#${x[0]}" ${x[0]===r?'aria-current="page"':''}><b aria-hidden="true">${x[2]}</b>${x[1]}</a>`).join('');$('#app').innerHTML=P[r]();if(r==='ref')refList();hd();theme();scrollTo(0,0)}
+/* ---------- Aktionen ---------- */
+const X={
+home:route,
+lesson(b){const l=LS[b.dataset.id];$('#app').innerHTML=`<div class="card"><h1>${esc(l.t)}</h1><p><b>Lernziel:</b> ${esc(l.g)}</p><p>${esc(l.x)}</p><p class="mu">Vereinfachtes Übungsbeispiel – örtliche Vorgaben haben Vorrang.</p><button class="btn" data-a="go" data-id="${l.id}">Lektion starten</button> <button class="opt" style="width:auto" data-a="home">Zurück</button></div>`},
+go(b){const l=LS[b.dataset.id];run(l.T,l.t,p=>{const d=S.done[l.id]||(S.done[l.id]={best:0,n:0});d.best=Math.max(d.best,p);d.n++;return 20})},
+prac(b){const id=b.dataset.id,pool=A.filter(t=>id==='wrong'?S.wrong.includes(t.id):t.w===id);if(!pool.length)return $('#nt').textContent='Keine falsch beantworteten Aufgaben – stark!';run(shuf(pool).slice(0,10),id==='wrong'?'Fehler wiederholen':WN[id])},
+test(){const w=$('#tw').value,pool=A.filter(t=>(w==='all'||t.w===w)&&(!$('#tx').checked||S.wrong.includes(t.id)));if(!pool.length)return $('#nt').textContent='Keine passenden Fragen gefunden.';const n=+$('#tn').value;let q=[];while(q.length<n)q=q.concat(shuf(pool));run(q.slice(0,n),'Wissenstest')},
+pick(b){if(!R||R.chk)return;const t=R.tasks[R.i],i=b.dataset.i;if(t.y==='tf')R.sel=[i==='true'];else if(t.y==='mc'){const k=+i;R.sel=t.a.length>1?(R.sel.includes(k)?R.sel.filter(x=>x!==k):[...R.sel,k]):[k]}else R.sel.push(+i);draw()},
+oreset(){R.sel=[];draw()},check,next(){R.i++;nextT()},again(){run(R.tasks,R.title,R.onEnd)},
+sim(b){SIM={id:+b.dataset.id,s:SC[+b.dataset.id],i:0,ok:0,log:[],bad:[],fin:false};sStep()},
+sp(b){if(!SIM.chk){SIM.sel=+b.dataset.i;sd()}},
+ss(){const m=SIM;if(m.sel<0)return;const o=m.o[m.sel],st=m.s.st[m.i];m.chk=true;m.log.push('Du: '+o[0],(o[1]?'✔ ':'✘ ')+o[2],st.r);if(o[1])m.ok++;else m.bad.push(o[2]);rec({id:'sim-'+m.id+'-'+m.i,w:'sim',y:'mc'},!!o[1]);sd()},
+sn(){SIM.i++;SIM.i>=SIM.s.st.length?se():sStep()},
+copy(b){const t=G[b.dataset.i].m;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>b.textContent='✔ Kopiert',()=>b.textContent='Kopieren nicht möglich – bitte Text markieren')},
+th(b){S.theme=b.dataset.id;save();theme()},
+exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='firefunk-fortschritt.json';a.click()},
+};
+X.reset=function(){if(confirm('Wirklich den gesamten Lernstand löschen? Das kann nicht rückgängig gemacht werden.')){S=def();save();route()}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;if(X[a])X[a](b)});
+document.addEventListener('input',e=>{if(e.target.id==='q'||e.target.id==='cat')refList()});
+document.addEventListener('change',e=>{if(e.target.id==='cat')refList();if(e.target.id!=='imp')return;const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!valid(o))throw 0;S={...def(),...o};save();hd();theme();$('#nt').textContent='Fortschritt importiert ✔'}catch(x){$('#nt').textContent='Die Datei ist ungültig. Bitte wähle eine zuvor exportierte FireFunk-Datei (.json).'}};r.onerror=()=>{$('#nt').textContent='Die Datei konnte nicht gelesen werden.'};r.readAsText(f)});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='in'&&e.target.tagName==='INPUT'&&R)check()});
+addEventListener('hashchange',route);route();
+</script></body></html>
